@@ -4,27 +4,27 @@ A high-performance FIX (Financial Information eXchange) 4.4 protocol parser buil
 
 ## Features
 
-### 🚀 Performance Optimizations
+### Performance Optimizations
 - **Zero-copy parsing** using ByteBuffer operations
 - **Minimal GC overhead** through reusable buffers and object pooling
 - **High-throughput** message processing (100K+ messages/second)
 - **Memory-efficient** field access using ByteBuffer views
 
-### 🔧 Core Functionality
+### Core Functionality
 - **FIX 4.4 protocol support** with comprehensive message type validation
 - **ByteBuffer-based parsing** for optimal performance
 - **Checksum verification** with automatic validation
 - **Data dictionary validation** against FIX 4.4 specification
 - **Flexible input formats** (String, byte[], ByteBuffer)
 
-### 🛡️ Validation & Error Handling
+### Validation & Error Handling
 - **Message type validation** against FIX 4.4 data dictionary
 - **Required field validation** for each message type
 - **Field value validation** with type checking
 - **Comprehensive error reporting** with detailed exception information
 - **Buffer state preservation** on parsing errors
 
-### 🏗️ Message Building
+### Message Building
 - **Fluent API** for easy message construction
 - **Static factory methods** for common message types
 - **Automatic checksum calculation** and header generation
@@ -47,16 +47,13 @@ A high-performance FIX (Financial Information eXchange) 4.4 protocol parser buil
 ```java
 import com.fixparser.core.*;
 
-// Create parser with validation
 FixParser parser = new FixParser();
 
-// Parse a FIX message
 String fixMessage = "8=FIX.4.4\u00019=20\u000135=0\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000110=123\u0001";
 
 try {
     FixMessage message = parser.parse(fixMessage);
     
-    // Access fields with zero-copy operations
     String messageType = message.getMessageType(); // "0"
     String sender = message.getString(49);        // "CLIENT"
     String target = message.getString(56);        // "SERVER"
@@ -71,18 +68,15 @@ try {
 ### Message Building
 
 ```java
-// Build a heartbeat message
 String heartbeat = FixMessageBuilder.heartbeat()
     .setMsgSeqNum(42)
     .buildString();
 
-// Build a new order message
 String newOrder = FixMessageBuilder.newOrder("AAPL", '1', 100.0, '2')
     .setMsgSeqNum(10)
-    .addField(60, "20231201-10:30:00.000") // TransactTime
+    .addField(60, "20231201-10:30:00.000") 
     .buildString();
 
-// Build a custom message
 String custom = new FixMessageBuilder("FIX.4.4", "CLIENT", "SERVER")
     .setMessageType("V") // Market Data Request
     .setMsgSeqNum(100)
@@ -95,11 +89,9 @@ String custom = new FixMessageBuilder("FIX.4.4", "CLIENT", "SERVER")
 ### ByteBuffer Operations
 
 ```java
-// Parse from ByteBuffer (zero-copy)
 ByteBuffer buffer = ByteBuffer.wrap(fixMessage.getBytes());
 FixMessage message = parser.parse(buffer);
 
-// Access field with ByteBuffer view
 FixMessage.FieldInfo fieldInfo = message.getField(55); // Symbol
 if (fieldInfo != null) {
     String symbol = fieldInfo.getValueAsString();
@@ -108,7 +100,6 @@ if (fieldInfo != null) {
     int valueLength = fieldInfo.getValueLength();
 }
 
-// Multiple messages in single buffer
 String message1 = "8=FIX.4.4\u00019=20\u000135=0\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000110=123\u0001";
 String message2 = "8=FIX.4.4\u00019=20\u000135=0\u000149=CLIENT\u000156=SERVER\u000134=2\u000152=20231201-10:30:01.000\u000110=124\u0001";
 String combined = message1 + message2;
@@ -148,14 +139,12 @@ FixMessage msg2 = parser.parse(buffer);
 ### Custom Validation
 
 ```java
-// Create parser without validation for maximum performance
 FixParser fastParser = new FixParser(new FixDictionary(), false, false);
 
-// Create parser with custom validation settings
 FixParser customParser = new FixParser(
-    new FixDictionary(),  // dictionary
-    true,                 // validate checksum
-    false                 // don't validate dictionary
+    new FixDictionary(), 
+    true,                 
+    false                 
 );
 ```
 
@@ -164,14 +153,11 @@ FixParser customParser = new FixParser(
 ```java
 FixDictionary dictionary = new FixDictionary();
 
-// Check message type validity
-boolean isValid = dictionary.isValidMessageType("D"); // true
+boolean isValid = dictionary.isValidMessageType("D"); 
 
-// Get required fields for message type
 Set<Integer> requiredFields = dictionary.getRequiredFields("D");
 // Returns: [8, 9, 35, 49, 56, 34, 52, 11, 21, 55, 54, 60, 10]
 
-// Validate field value
 boolean isValidField = dictionary.validateFieldValue(34, "123"); // true
 ```
 
@@ -254,25 +240,8 @@ mvn test
 mvn exec:java -Dexec.mainClass="com.fixparser.example.FixParserExample"
 ```
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Acknowledgments
 
 - FIX Protocol specification (FIX 4.4)
 - Java NIO ByteBuffer for zero-copy operations
 - JUnit 5 for comprehensive testing
-
-## Support
-
-For questions, issues, or contributions, please open an issue on GitHub or contact the maintainers. 
