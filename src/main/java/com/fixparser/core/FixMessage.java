@@ -5,10 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Represents a FIX message with zero-copy field access using ByteBuffer views.
- * This class minimizes object allocation by reusing ByteBuffer slices.
- */
+
 public class FixMessage {
     
     private final ByteBuffer originalBuffer;
@@ -17,9 +14,7 @@ public class FixMessage {
     private final int checksum;
     private final String messageType;
     
-    /**
-     * Internal class to store field information with ByteBuffer views
-     */
+    
     public static class FieldInfo {
         private final ByteBuffer valueBuffer;
         private final int tag;
@@ -74,75 +69,55 @@ public class FixMessage {
         this.messageType = messageType;
     }
     
-    /**
-     * Get a field by tag number with zero-copy access
-     */
+    
     public FieldInfo getField(int tag) {
         return fields.get(tag);
     }
     
-    /**
-     * Get field value as string with zero-copy access
-     */
+    
     public String getString(int tag) {
         FieldInfo field = fields.get(tag);
         return field != null ? field.getValueAsString() : null;
     }
     
-    /**
-     * Get field value as integer
-     */
+    
     public Integer getInt(int tag) {
         FieldInfo field = fields.get(tag);
         return field != null ? field.getValueAsInt() : null;
     }
     
-    /**
-     * Get field value as double
-     */
+    
     public Double getDouble(int tag) {
         FieldInfo field = fields.get(tag);
         return field != null ? field.getValueAsDouble() : null;
     }
     
-    /**
-     * Check if field exists
-     */
+    
     public boolean hasField(int tag) {
         return fields.containsKey(tag);
     }
     
-    /**
-     * Get all fields
-     */
+    
     public Map<Integer, FieldInfo> getAllFields() {
         return new HashMap<>(fields);
     }
     
-    /**
-     * Get the message type (tag 35)
-     */
+    
     public String getMessageType() {
         return messageType;
     }
     
-    /**
-     * Get the calculated checksum
-     */
+    
     public int getChecksum() {
         return checksum;
     }
     
-    /**
-     * Get the message length
-     */
+    
     public int getMessageLength() {
         return messageLength;
     }
     
-    /**
-     * Get the original ByteBuffer
-     */
+            
     public ByteBuffer getOriginalBuffer() {
         return originalBuffer;
     }
