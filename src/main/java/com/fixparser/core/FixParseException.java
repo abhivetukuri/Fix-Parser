@@ -1,9 +1,6 @@
 package com.fixparser.core;
 
-/**
- * Exception thrown when FIX message parsing fails.
- * Provides detailed error information for debugging.
- */
+
 public class FixParseException extends Exception {
     
     private final String message;
@@ -33,9 +30,7 @@ public class FixParseException extends Exception {
         this.field = field;
     }
     
-    /**
-     * Get the error message
-     */
+
     @Override
     public String getMessage() {
         StringBuilder sb = new StringBuilder();
@@ -52,16 +47,12 @@ public class FixParseException extends Exception {
         return sb.toString();
     }
     
-    /**
-     * Get the position where the error occurred
-     */
+
     public int getPosition() {
         return position;
     }
     
-    /**
-     * Get the field where the error occurred
-     */
+
     public String getField() {
         return field;
     }
