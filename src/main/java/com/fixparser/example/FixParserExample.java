@@ -11,10 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Comprehensive example demonstrating the FIX parser functionality.
- * Shows zero-copy parsing, ByteBuffer operations, and performance optimizations.
- */
+
 public class FixParserExample {
     
     public static void main(String[] args) {
@@ -22,35 +19,26 @@ public class FixParserExample {
         
         System.out.println("=== FIX Parser Example ===\n");
         
-        // Basic parsing examples
         example.basicParsingExample();
         
-        // Message building examples
         example.messageBuildingExample();
         
-        // Performance examples
         example.performanceExample();
         
-        // Zero-copy examples
         example.zeroCopyExample();
         
-        // Validation examples
         example.validationExample();
         
-        // Error handling examples
         example.errorHandlingExample();
     }
     
-    /**
-     * Demonstrate basic FIX message parsing
-     */
+
     public void basicParsingExample() {
         System.out.println("1. Basic Parsing Examples:");
         System.out.println("---------------------------");
         
         FixParser parser = new FixParser();
         
-        // Parse a heartbeat message
         String heartbeatMsg = "8=FIX.4.4\u00019=20\u000135=0\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000110=123\u0001";
         
         try {
@@ -65,7 +53,6 @@ public class FixParserExample {
             System.err.println("✗ Failed to parse heartbeat: " + e.getMessage());
         }
         
-        // Parse a new order message
         String newOrderMsg = "8=FIX.4.4\u00019=45\u000135=D\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000111=ORDER001\u000121=1\u000155=AAPL\u000154=1\u000138=100.0\u000140=2\u000160=20231201-10:30:00.000\u000110=345\u0001";
         
         try {
@@ -84,28 +71,23 @@ public class FixParserExample {
         System.out.println();
     }
     
-    /**
-     * Demonstrate FIX message building
-     */
+
     public void messageBuildingExample() {
         System.out.println("2. Message Building Examples:");
         System.out.println("------------------------------");
         
-        // Build a heartbeat message
         String heartbeat = FixMessageBuilder.heartbeat()
                 .setMsgSeqNum(42)
                 .buildString();
         System.out.println("✓ Built heartbeat message:");
         System.out.println("  " + heartbeat);
         
-        // Build a logon message
         String logon = FixMessageBuilder.logon()
                 .setMsgSeqNum(1)
                 .buildString();
         System.out.println("\n✓ Built logon message:");
         System.out.println("  " + logon);
         
-        // Build a new order message
         String newOrder = FixMessageBuilder.newOrder("AAPL", '1', 100.0, '2')
                 .setMsgSeqNum(10)
                 .addField(60, "20231201-10:30:00.000") // TransactTime
@@ -116,23 +98,19 @@ public class FixParserExample {
         System.out.println();
     }
     
-    /**
-     * Demonstrate performance optimizations
-     */
+
     public void performanceExample() {
         System.out.println("3. Performance Examples:");
         System.out.println("-------------------------");
         
         FixParser parser = new FixParser();
         
-        // Performance test: Parse many messages
         int messageCount = 100_000;
         String testMessage = "8=FIX.4.4\u00019=45\u000135=D\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000111=ORDER001\u000121=1\u000155=AAPL\u000154=1\u000138=100.0\u000140=2\u000160=20231201-10:30:00.000\u000110=345\u0001";
         byte[] messageBytes = testMessage.getBytes();
         
         System.out.println("Running performance test with " + messageCount + " messages...");
         
-        // Warm up
         for (int i = 0; i < 1000; i++) {
             try {
                 parser.parse(messageBytes);
@@ -141,7 +119,6 @@ public class FixParserExample {
             }
         }
         
-        // Actual test
         Instant start = Instant.now();
         AtomicLong successCount = new AtomicLong(0);
         
@@ -152,7 +129,6 @@ public class FixParserExample {
                     successCount.incrementAndGet();
                 }
             } catch (FixParseException e) {
-                // Ignore errors for performance test
             }
         }
         
@@ -168,9 +144,7 @@ public class FixParserExample {
         System.out.println();
     }
     
-    /**
-     * Demonstrate zero-copy operations
-     */
+
     public void zeroCopyExample() {
         System.out.println("4. Zero-Copy Examples:");
         System.out.println("-----------------------");
@@ -183,7 +157,6 @@ public class FixParserExample {
             
             System.out.println("✓ Zero-copy field access:");
             
-            // Access field info with ByteBuffer views
             FixMessage.FieldInfo fieldInfo = message.getField(55); // Symbol
             if (fieldInfo != null) {
                 System.out.println("  Symbol field (tag 55):");
@@ -194,7 +167,6 @@ public class FixParserExample {
                 System.out.println("    Has ByteBuffer view: " + (fieldInfo.getValueBuffer() != null));
             }
             
-            // Multiple messages in single buffer
             System.out.println("\n✓ Multiple messages in buffer:");
             String message1 = "8=FIX.4.4\u00019=20\u000135=0\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000110=123\u0001";
             String message2 = "8=FIX.4.4\u00019=20\u000135=0\u000149=CLIENT\u000156=SERVER\u000134=2\u000152=20231201-10:30:01.000\u000110=124\u0001";
@@ -216,9 +188,7 @@ public class FixParserExample {
         System.out.println();
     }
     
-    /**
-     * Demonstrate validation features
-     */
+
     public void validationExample() {
         System.out.println("5. Validation Examples:");
         System.out.println("-----------------------");
@@ -229,8 +199,7 @@ public class FixParserExample {
         System.out.println("✓ Dictionary validation:");
         System.out.println("  Valid message types: " + dictionary.getValidMessageTypes().size());
         System.out.println("  Field definitions: " + dictionary.getAllFieldDefinitions().size());
-        
-        // Test field validation
+
         System.out.println("\n✓ Field validation:");
         System.out.println("  Tag 8 (BeginString) validation: " + dictionary.validateFieldValue(8, "FIX.4.4"));
         System.out.println("  Tag 34 (MsgSeqNum) validation: " + dictionary.validateFieldValue(34, "123"));
@@ -240,21 +209,18 @@ public class FixParserExample {
         System.out.println();
     }
     
-    /**
-     * Demonstrate error handling
-     */
+
     public void errorHandlingExample() {
         System.out.println("6. Error Handling Examples:");
         System.out.println("----------------------------");
         
         FixParser parser = new FixParser();
         
-        // Test various error conditions
         String[] invalidMessages = {
-            "", // Empty message
-            "8=FIX.4.4", // Incomplete message
-            "8=FIX.4.4\u00019=20\u000135=Z\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000110=123\u0001", // Invalid message type
-            "8=FIX.4.4\u00019=20\u000135=0\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000110=999\u0001" // Invalid checksum
+            "", 
+            "8=FIX.4.4", 
+            "8=FIX.4.4\u00019=20\u000135=Z\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000110=123\u0001", 
+            "8=FIX.4.4\u00019=20\u000135=0\u000149=CLIENT\u000156=SERVER\u000134=1\u000152=20231201-10:30:00.000\u000110=999\u0001" 
         };
         
         String[] errorTypes = {
