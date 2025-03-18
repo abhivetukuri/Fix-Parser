@@ -112,6 +112,10 @@ public class FixMessageBuilder {
 
     private void buildMessageBody() {
         stringBuilder.append("35=").append(messageType).append((char) FIELD_SEPARATOR);
+        stringBuilder.append("49=").append(senderCompId).append((char) FIELD_SEPARATOR);
+        stringBuilder.append("56=").append(targetCompId).append((char) FIELD_SEPARATOR);
+        stringBuilder.append("34=").append(msgSeqNum).append((char) FIELD_SEPARATOR);
+        stringBuilder.append("52=").append(getCurrentTimestamp()).append((char) FIELD_SEPARATOR);
         
         for (Map.Entry<Integer, String> entry : fields.entrySet()) {
             int tag = entry.getKey();
@@ -127,37 +131,22 @@ public class FixMessageBuilder {
     
 
     private ByteBuffer buildCompleteMessage(int bodyLength) {
-        int totalSize = calculateTotalSize(bodyLength);
+        StringBuilder fullMessage = new StringBuilder();
         
-        if (tempBuffer.capacity() < totalSize) {
-            tempBuffer.clear();
-            ByteBuffer newBuffer = ByteBuffer.allocate(totalSize);
-            tempBuffer.put(newBuffer);
-            tempBuffer.clear();
+        fullMessage.append("8=").append(beginString).append((char) FIELD_SEPARATOR);
+        fullMessage.append("9=").append(bodyLength).append((char) FIELD_SEPARATOR);
+        fullMessage.append(stringBuilder);
+        
+        int checksum = calculateChecksum(fullMessage.toString());
+        fullMessage.append("10=").append(String.format("%03d", checksum)).append((char) FIELD_SEPARATOR);
+        
+        byte[] messageBytes = fullMessage.toString().getBytes(StandardCharsets.UTF_8);
+        tempBuffer.clear();
+        if (tempBuffer.capacity() < messageBytes.length) {
+            return ByteBuffer.wrap(messageBytes);
         }
         
-        tempBuffer.put((beginString + (char) FIELD_SEPARATOR).getBytes(StandardCharsets.UTF_8));
-        tempBuffer.put(("9=" + bodyLength + (char) FIELD_SEPARATOR).getBytes(StandardCharsets.UTF_8));
-        tempBuffer.put(("35=" + messageType + (char) FIELD_SEPARATOR).getBytes(StandardCharsets.UTF_8));
-        tempBuffer.put(("49=" + senderCompId + (char) FIELD_SEPARATOR).getBytes(StandardCharsets.UTF_8));
-        tempBuffer.put(("56=" + targetCompId + (char) FIELD_SEPARATOR).getBytes(StandardCharsets.UTF_8));
-        tempBuffer.put(("34=" + msgSeqNum + (char) FIELD_SEPARATOR).getBytes(StandardCharsets.UTF_8));
-        tempBuffer.put(("52=" + getCurrentTimestamp() + (char) FIELD_SEPARATOR).getBytes(StandardCharsets.UTF_8));
-        
-        for (Map.Entry<Integer, String> entry : fields.entrySet()) {
-            int tag = entry.getKey();
-            String value = entry.getValue();
-            
-            if (isHeaderField(tag)) {
-                continue;
-            }
-            
-            tempBuffer.put((tag + "=" + value + (char) FIELD_SEPARATOR).getBytes(StandardCharsets.UTF_8));
-        }
-        
-        int checksum = calculateChecksum(tempBuffer);
-        tempBuffer.put(("10=" + String.format("%03d", checksum) + (char) FIELD_SEPARATOR).getBytes(StandardCharsets.UTF_8));
-        
+        tempBuffer.put(messageBytes);
         tempBuffer.flip();
         return tempBuffer;
     }
@@ -193,19 +182,11 @@ public class FixMessageBuilder {
     }
     
 
-    private int calculateChecksum(ByteBuffer buffer) {
+    private int calculateChecksum(String message) {
         int checksum = 0;
-        int position = buffer.position();
-        
-        buffer.rewind();
-        while (buffer.hasRemaining()) {
-            byte b = buffer.get();
-            if (b != FIELD_SEPARATOR) {
-                checksum += b;
-            }
+        for (byte b : message.getBytes(StandardCharsets.UTF_8)) {
+            checksum += (b & 0xFF);
         }
-        
-        buffer.position(position);
         return checksum % 256;
     }
     

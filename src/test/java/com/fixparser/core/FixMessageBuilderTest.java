@@ -18,6 +18,19 @@ class FixMessageBuilderTest {
         builder = new FixMessageBuilder("FIX.4.4", "CLIENT", "SERVER");
     }
     
+    // Helper to build a valid FIX message with correct body length and checksum
+    private String buildFixMessage(String body) {
+        String header = "8=FIX.4.4" + '\u0001';
+        int bodyLength = body.getBytes().length;
+        String bodyLenField = "9=" + bodyLength + '\u0001';
+        String msgBeforeChecksum = header + bodyLenField + body;
+        int checksum = 0;
+        for (byte b : msgBeforeChecksum.getBytes()) checksum += (b & 0xFF);
+        checksum = checksum % 256;
+        String checksumField = String.format("10=%03d\u0001", checksum);
+        return msgBeforeChecksum + checksumField;
+    }
+    
     @Test
     @DisplayName("Should build heartbeat message")
     void shouldBuildHeartbeatMessage() {
@@ -90,13 +103,13 @@ class FixMessageBuilderTest {
     void shouldHandleDifferentFieldTypes() {
             String message = builder.setMessageType("0")
                 .addField(11, "STRING") 
-                .addField(34, 123) 
+                .addField(37, 123) 
                 .addField(38, 100.5) 
                 .addField(54, '1') 
                 .buildString();
         
         assertTrue(message.contains("11=STRING"));
-        assertTrue(message.contains("34=123"));
+        assertTrue(message.contains("37=123"));
         assertTrue(message.contains("38=100.5"));
         assertTrue(message.contains("54=1"));
     }
@@ -274,7 +287,7 @@ class FixMessageBuilderTest {
         
         assertTrue(message.contains("52="));
         int timestampStart = message.indexOf("52=");
-        int timestampEnd = message.indexOf("\u0001", timestampStart);
+        int timestampEnd = message.indexOf('\u0001', timestampStart);
         String timestamp = message.substring(timestampStart + 3, timestampEnd);
         assertTrue(timestamp.matches("\\d{8}-\\d{2}:\\d{2}:\\d{2}\\.\\d{3}"));
     }

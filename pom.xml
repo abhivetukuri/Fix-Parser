@@ -64,10 +64,6 @@
                 <configuration>
                     <source>11</source>
                     <target>11</target>
-                    <compilerArgs>
-                        <arg>-XX:+UseG1GC</arg>
-                        <arg>-XX:MaxGCPauseMillis=10</arg>
-                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

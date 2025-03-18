@@ -94,6 +94,9 @@ public class FixParser {
     
 
     public FixMessage parse(String message) throws FixParseException {
+        if (message == null) {
+            throw new FixParseException("Input message is null");
+        }
         return parse(message.getBytes());
     }
     
@@ -103,9 +106,9 @@ public class FixParser {
         int limit = buffer.limit();
         
 
-        while (position < limit - 7) { 
+        while (position < limit - 3) { 
             if (buffer.get(position) == '1' && buffer.get(position + 1) == '0' && 
-                buffer.get(position + 2) == '=') {
+                buffer.get(position + 2) == EQUALS) {
 
                 for (int i = position + 3; i < limit; i++) {
                     if (buffer.get(i) == FIELD_SEPARATOR) {
@@ -117,7 +120,7 @@ public class FixParser {
             position++;
         }
         
-        return -1; 
+        return limit; 
     }
     
 
@@ -192,13 +195,16 @@ public class FixParser {
     
     private int parseTag(ByteBuffer buffer, int start, int end) throws FixParseException {
         tempBuffer.clear();
-        tempBuffer.limit(end - start);
+        
+        int originalPosition = buffer.position();
+        int originalLimit = buffer.limit();
         
         buffer.position(start);
         buffer.limit(end);
         tempBuffer.put(buffer);
         
-        buffer.limit(buffer.capacity());
+        buffer.position(originalPosition);
+        buffer.limit(originalLimit);
         
         tempBuffer.flip();
         byte[] tagBytes = new byte[tempBuffer.remaining()];
@@ -214,11 +220,19 @@ public class FixParser {
     private boolean validateChecksum(ByteBuffer buffer, int start, int end, int expectedChecksum) {
         int calculatedChecksum = 0;
         
-        for (int i = start; i < end; i++) {
-            byte b = buffer.get(i);
-            if (b != FIELD_SEPARATOR) {
-                calculatedChecksum += b;
+        int checksumFieldStart = -1;
+        for (int i = start; i < end - 3; i++) {
+            if (buffer.get(i) == '1' && buffer.get(i + 1) == '0' && buffer.get(i + 2) == EQUALS) {
+                checksumFieldStart = i;
+                break;
             }
+        }
+        
+        int checksumEnd = checksumFieldStart > 0 ? checksumFieldStart : end;
+        
+        for (int i = start; i < checksumEnd; i++) {
+            byte b = buffer.get(i);
+            calculatedChecksum += (b & 0xFF);
         }
         
         calculatedChecksum %= 256;
