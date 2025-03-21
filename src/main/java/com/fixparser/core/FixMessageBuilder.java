@@ -199,11 +199,12 @@ public class FixMessageBuilder {
     public static FixMessageBuilder newOrder(String symbol, char side, double quantity, char orderType) {
         return new FixMessageBuilder("FIX.4.4", "CLIENT", "SERVER")
                 .setMessageType("D")
+                .addField(11, "ORDER" + System.currentTimeMillis()) 
+                .addField(21, '1') 
                 .addField(55, symbol) 
                 .addField(54, side) 
                 .addField(38, quantity) 
                 .addField(40, orderType) 
-                .addField(21, '1') 
                 .addField(60, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HH:mm:ss.SSS"))); 
     }
     

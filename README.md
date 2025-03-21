@@ -124,8 +124,8 @@ FixMessage msg2 = parser.parse(buffer);
 - **Zero-copy parsing**: Uses ByteBuffer views instead of String copies
 - **Reusable buffers**: Minimizes object allocation
 - **Field caching**: Efficient field lookup and access
-- **Memory efficiency**: ~50% less memory usage compared to string-based parsers
-- **High throughput**: 100K+ messages/second on modern hardware
+- **Memory efficiency**: ~29% less memory usage compared to string-based parsers
+- **High throughput**: 411K+ messages/second on modern hardware
 
 ### Memory Management
 
@@ -175,23 +175,44 @@ try {
 
 ## Performance Benchmarks
 
-### Throughput Test
+### Throughput Test (with validation)
 ```
 Messages parsed: 100,000
-Time taken: 850ms
-Messages per second: 117,647
-Average time per message: 8.5μs
+Time taken: 243ms
+Messages per second: 411,560
+Average time per message: 2.4μs
+```
+
+### Field Access Performance
+```
+Field accesses: 500,000
+Time taken: 53ms
+Field accesses per second: 9,481,939
+```
+
+### Message Building Performance
+```
+Messages built: 25,000
+Time taken: 116ms
+Messages per second: 216,292
+```
+
+### Multiple Message Buffer Parsing
+```
+Messages parsed from buffer: 1,000
+Time taken: 2.0ms
+Messages per second: 488,182
 ```
 
 ### Memory Usage Comparison
-- **Traditional String-based parser**: ~2.5MB for 10K messages
-- **This ByteBuffer parser**: ~1.2MB for 10K messages
-- **Memory reduction**: ~50%
+- **Traditional String-based parser**: ~19.0MB for 10K messages (1,990 bytes/message)
+- **This ByteBuffer parser**: ~13.6MB for 10K messages (1,421 bytes/message)
+- **Memory reduction**: ~28.6%
 
 ### GC Impact
-- **Minor GC frequency**: Reduced by ~60%
-- **Major GC frequency**: Reduced by ~40%
-- **GC pause time**: Reduced by ~50%
+- **ByteBuffer parser GC time**: 14ms for 100K operations
+- **String-based parser GC time**: 17ms for 100K operations
+- **GC time reduction**: ~17.6%
 
 ## Supported Message Types
 
@@ -238,6 +259,15 @@ mvn test
 ### Run Example
 ```bash
 mvn exec:java -Dexec.mainClass="com.fixparser.example.FixParserExample"
+```
+
+### Run Benchmarks
+```bash
+# Main performance benchmark
+mvn exec:java -Dexec.mainClass="com.fixparser.benchmark.FixParserBenchmark"
+
+# Memory comparison benchmark
+mvn exec:java -Dexec.mainClass="com.fixparser.benchmark.MemoryComparisonBenchmark"
 ```
 
 ## Acknowledgments
